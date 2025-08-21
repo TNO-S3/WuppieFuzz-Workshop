@@ -1,0 +1,20 @@
+diff -uNr swagger-petstore-swagger-petstore-v2-1.0.6/src/main/java/io/swagger/sample/resource/SampleExceptionMapper.java patched/src/main/java/io/swagger/sample/resource/SampleExceptionMapper.java
+--- swagger-petstore-swagger-petstore-v2-1.0.6/src/main/java/io/swagger/sample/resource/SampleExceptionMapper.java	2021-12-09 16:56:33.000000000 +0100
++++ patched/src/main/java/io/swagger/sample/resource/SampleExceptionMapper.java	2025-08-20 15:58:07.479242688 +0200
+@@ -37,6 +37,9 @@
+     } else if (exception instanceof com.fasterxml.jackson.core.JsonParseException) {
+       return Response.status(400)
+           .entity(new ApiResponse(400, "bad input")).build();
++    } else if (exception instanceof com.fasterxml.jackson.core.JsonProcessingException) {
++      return Response.status(405)
++          .entity(new ApiResponse(405, "bad input")).build();
+     } else if (exception instanceof NotFoundException) {
+       return Response
+           .status(Status.NOT_FOUND)
+@@ -58,4 +61,4 @@
+           .build();
+     }
+   }
+-}
+\ No newline at end of file
++}
