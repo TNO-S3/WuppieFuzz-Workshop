@@ -23,7 +23,7 @@ if [ "$1" == "true" ]; then
 elif [ "$1" == "false" ]; then
 # patch -p1 < ../petstore.patch
     APPLY_PATCH=""
-else 
+else
     echo "Error: invalid option selected"
     usage
 fi
@@ -45,7 +45,18 @@ fi
 cd ..
 
 docker build -t petstore .
-CONTAINER_ID=$(docker run -itd -p 8080:8080 petstore)
+
+# Delete the downloaded petstore folder
+rm -r swagger-petstore-swagger-petstore-v2-1.0.6/  # Go into the extracted directory
+
+# Kill the existing container if it exists
+if [[ ! -z $(docker ps | grep petstore_fuzz) ]]; then
+    echo "[*] Killing petstore container..."
+    docker kill petstore_fuzz
+    docker rm petstore_fuzz
+fi
+
+CONTAINER_ID=$(docker run -itd -p 8080:8080 --name petstore_fuzz petstore)
 sleep 5
 
 # Test the output
@@ -66,5 +77,3 @@ curl -X 'POST' \
   "tags": "",
   "status": "available"
 }'
-
-docker kill $CONTAINER_ID
