@@ -44,6 +44,7 @@ fi
 
 cd ..
 
+# Build the Petstore Docker image
 docker build -t petstore .
 
 # Delete the downloaded petstore folder

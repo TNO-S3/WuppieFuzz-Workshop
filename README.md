@@ -19,7 +19,7 @@ Install WuppieFuzz
 [repository](https://github.com/TNO-S3/WuppieFuzz/tree/main)
 
 Installer script for the latest version:
-```
+```sh
 curl --proto '=https' --tlsv1.2 -LsSf https://github.com/TNO-S3/WuppieFuzz/releases/download/v1.2.0/wuppiefuzz-installer.sh | sh
 ```
 
@@ -30,6 +30,12 @@ Install the Wuppiefuzz dashboard
 [repository](https://github.com/TNO-S3/WuppieFuzz-dashboard)
 
 Copy wuppiefuzz to a directory that is already in your path so that it can be run from anywhere.
+
+Installer script for the latest version:
+```sh
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/TNO-S3/WuppieFuzz-dashboard/releases/download/v0.1.0/wuppiefuzz-dashboard-installer.sh | sh
+```
+
 
 ## Fuzzing
 
@@ -51,3 +57,7 @@ wuppiefuzz fuzz --config blackbox.yaml
 ```
 
 Alternatively, we can edit the file `blackbox.yaml` to change the `timeout` parameter. This parameter indicates how long Wuppiefuzz will fuzz the target.
+
+
+When WuppieFuzz has finished we can look at the fuzzing results in the dashboard:
+```sh
