@@ -28,10 +28,13 @@ else
     usage
 fi
 
+# Download the pet store if it's not been downloaded before
+# (we choose a specific older version with a bug we can find quickly)
+if [ ! -f swagger-petstore-v2-1.0.6.tar.gz ]; then
+    wget https://github.com/swagger-api/swagger-petstore/archive/refs/tags/swagger-petstore-v2-1.0.6.tar.gz
+fi
 
-wget https://github.com/swagger-api/swagger-petstore/archive/refs/tags/swagger-petstore-v2-1.0.6.tar.gz
 tar xf swagger-petstore-v2-1.0.6.tar.gz         # Extract the contents
-rm swagger-petstore-v2-1.0.6.tar.gz
 cd swagger-petstore-swagger-petstore-v2-1.0.6/  # Go into the extracted directory
 
 if [ -z $APPLY_PATCH ]; then
@@ -47,9 +50,6 @@ cd ..
 # Build the Petstore Docker image
 docker build -t petstore .
 
-# Delete the downloaded petstore folder
-rm -r swagger-petstore-swagger-petstore-v2-1.0.6/  # Go into the extracted directory
-
 # Kill the existing container if it exists
 if [[ ! -z $(docker ps | grep petstore_fuzz) ]]; then
     echo "[*] Killing petstore container..."
@@ -59,6 +59,10 @@ fi
 
 CONTAINER_ID=$(docker run -itd -p 8080:8080 --name petstore_fuzz petstore)
 sleep 5
+
+
+echo ''
+echo 'Sending a test request to the pet store container ...'
 
 # Test the output
 curl -X 'POST' \
@@ -78,3 +82,14 @@ curl -X 'POST' \
   "tags": "",
   "status": "available"
 }'
+
+# Download the API specification from the running container,
+# and use the Swagger online service to convert it to a modern format
+# and replace https by http since our docker server is plaintext
+curl -s http://localhost:8080/api/swagger.json | \
+  curl -s -X 'POST' \
+    'https://converter.swagger.io/api/convert' \
+    -H 'accept: application/json' \
+    -H 'content-type: application/json' \
+    -d @- | \
+  sed 's/https/http/g' > openapi.json

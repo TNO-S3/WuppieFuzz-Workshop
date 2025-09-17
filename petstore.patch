@@ -6,8 +6,8 @@ diff -uNr swagger-petstore-swagger-petstore-v2-1.0.6/src/main/java/io/swagger/sa
        return Response.status(400)
            .entity(new ApiResponse(400, "bad input")).build();
 +    } else if (exception instanceof com.fasterxml.jackson.core.JsonProcessingException) {
-+      return Response.status(405)
-+          .entity(new ApiResponse(405, "bad input")).build();
++      return Response.status(400)
++          .entity(new ApiResponse(400, "bad input")).build();
      } else if (exception instanceof NotFoundException) {
        return Response
            .status(Status.NOT_FOUND)
