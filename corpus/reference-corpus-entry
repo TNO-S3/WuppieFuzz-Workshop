@@ -1,0 +1,31 @@
+- method: POST
+  path: /pet
+  body: !ApplicationJson
+    DataType: Object
+    Contents:
+      name:
+        DataType: PrimitiveValue
+        Contents: !String doggie
+      photoUrls:
+        DataType: Array
+        Contents:
+        - DataType: PrimitiveValue
+          Contents: !String 🎵
+- method: GET
+  path: /pet/{petId}
+  parameters:
+    ? - petId
+      - Path
+    : DataType: ReferenceToEarlierResponse
+      Contents:
+        request: 0
+        parameter_name: id
+- method: DELETE
+  path: /pet/{petId}
+  parameters:
+    ? - petId
+      - Path
+    : DataType: ReferenceToEarlierResponse
+      Contents:
+        request: 0
+        parameter_name: id
