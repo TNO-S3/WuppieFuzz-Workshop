@@ -85,11 +85,12 @@ curl -X 'POST' \
 
 # Download the API specification from the running container,
 # and use the Swagger online service to convert it to a modern format
+#   (and to yaml instead of json for human-readability)
 # and replace https by http since our docker server is plaintext
 curl -s http://localhost:8080/api/swagger.json | \
   curl -s -X 'POST' \
     'https://converter.swagger.io/api/convert' \
-    -H 'accept: application/json' \
+    -H 'accept: application/yaml' \
     -H 'content-type: application/json' \
     -d @- | \
-  sed 's/https/http/g' > openapi.json
+  sed 's/https/http/g' > openapi.yaml

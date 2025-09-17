@@ -16,7 +16,7 @@ output_format: human-readable
 ## CHANGE TO YOUR OWN PATHS:
 
 # The path to the open api specification of the target.
-openapi_spec: openapi.json
+openapi_spec: openapi.yaml
 
 # Where is the coverage host running, can be either a hostname or an IP address. Must include a port.
 #coverage_host: localhost:6300

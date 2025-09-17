@@ -70,3 +70,7 @@ It can be applied to the source code, and the fixed version hosted via Docker, u
 ```sh
 ./start_petstore.sh true
 ```
+
+Try fuzzing again, and see if there is a difference!
+
+Note that the bash script also sends a test request to the container. This request triggers the bug patched in this tutorial, i.e. when called with `false` the test returns a `500` status code, and when called with `true` it correctly returns `400` to indicate a bad request.
