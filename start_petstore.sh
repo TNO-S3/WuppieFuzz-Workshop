@@ -1,7 +1,6 @@
 #!/bin/bash
 
-# Exit on failure
-set -e
+CONTAINER_NAME="petstore_fuzz"
 
 usage() {
     echo
@@ -28,6 +27,14 @@ else
     usage
 fi
 
+# Check if Docker is running
+docker info &> /dev/null
+ret_code=$?
+if [ $ret_code != 0 ]; then
+    echo "Error: Docker is not running. Please start Docker and try again."
+    exit;
+fi
+
 # Download the pet store if it's not been downloaded before
 # (we choose a specific older version with a bug we can find quickly)
 if [ ! -f swagger-petstore-v2-1.0.6.tar.gz ]; then
@@ -42,7 +49,8 @@ if [ -z $APPLY_PATCH ]; then
     :
 else
     # Apply the patch
-    patch -p1 < ../petstore.patch
+    echo "[*] Patching target application..."
+    patch -p1 < ../petstore.patch > /dev/null
 fi
 
 cd ..
@@ -51,20 +59,39 @@ cd ..
 docker build -t petstore .
 
 # Kill the existing container if it exists
-if [[ ! -z $(docker ps | grep petstore_fuzz) ]]; then
-    echo "[*] Killing petstore container..."
-    docker kill petstore_fuzz
-    docker rm petstore_fuzz
+if [[ ! -z $(docker ps | grep $CONTAINER_NAME) ]]; then
+    echo "[*] Killing existing container \"$CONTAINER_NAME\"..."
+    docker kill $CONTAINER_NAME > /dev/null
 fi
 
-CONTAINER_ID=$(docker run -itd -p 8080:8080 --name petstore_fuzz petstore)
-sleep 5
+# Remove the existing container if it exists
+if [[ ! -z $(docker ps -a | grep $CONTAINER_NAME) ]]; then
+    echo "[*] Removing existing container \"$CONTAINER_NAME\"..."
+    docker rm $CONTAINER_NAME > /dev/null
+fi
 
 
-echo ''
-echo 'Sending a test request to the pet store container ...'
+# Create a docker container with name "$CONTAINER_NAME"
+echo "[*] Starting a new Docker container with name \"$CONTAINER_NAME\"..."
+docker run -itd -p 8080:8080 --name $CONTAINER_NAME petstore > /dev/null
+
+
+# Loop until the container responds
+echo "[*] Waiting for the container to start up..."
+while true; do
+    curl http://localhost:8080/api &> /dev/null
+    ret_code=$?
+    if [ $ret_code = 0 ]; then
+        break
+    fi
+    sleep 1
+done
+
+echo "[+] Container \"$CONTAINER_NAME\" is up and running!"
+
 
 # Test the output
+echo -e '[*] Sending a test request to the pet store container. The output: \n'
 curl -X 'POST' \
   'http://localhost:8080/api/pet' \
   -H 'accept: application/json' \
@@ -82,6 +109,7 @@ curl -X 'POST' \
   "tags": "",
   "status": "available"
 }'
+echo -e '\n\n'
 
 # Download the API specification from the running container,
 # and use the Swagger online service to convert it to a modern format
