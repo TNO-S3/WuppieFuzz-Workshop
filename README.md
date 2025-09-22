@@ -24,7 +24,7 @@ curl --proto '=https' --tlsv1.2 -LsSf https://github.com/TNO-S3/WuppieFuzz-dashb
 
 ### Setting up the target
 
-Use the bash script from this repository to build the target Docker container and start it.
+The target application used for this workshop is [Petstore](https://github.com/swagger-api/swagger-petstore/tree/master). For the purposes of this tutorial, we will specifically use version 1.0.6 with OpenAPI v2. We have made the setup easier by creating a Dockerfile that will download and start the target. Use the bash script from this repository to build the target Docker container and start it.
 
 It expects an argument; give `false` for now (if `true`, the script patches a bug we will find using the fuzzer).
 
@@ -34,7 +34,7 @@ It expects an argument; give `false` for now (if `true`, the script patches a bu
 
 This will start the target in its original form. It also loads the API specification from the target and converts it to a compatible format using the online Swagger convert service.
 
-## Fuzzing
+## Fuzzing basics with Wuppiefuzz
 
 Once the target is active, we can start fuzzing:
 ```sh
@@ -149,7 +149,7 @@ To gain insight into a possible cause for the bug we also consider a well-formed
 
 Although there is a difference in the characters used between the faulty and the functional requests, there is also a difference in the structure. Namely, the faulty requests contains strings for each field, while the functional request has more complicated structures like a list of dictionaries.
 
-To further investigate the cause we look at the source code of the target application. We are interested in the code for the POST request on the `/pet` endpoint which can be found in the file `WuppieFuzz-Workshop/swagger-petstore-swagger-petstore-v2-1.0.6/src/main/java/io/swagger/sample/resource/PetResource.java`. The code that handles the POST request can be found below.
+To further investigate the cause of this 500 response we look at the source code of the target application. We are interested in the code for the POST request on the `/pet` endpoint which can be found in the file `WuppieFuzz-Workshop/swagger-petstore-swagger-petstore-v2-1.0.6/src/main/java/io/swagger/sample/resource/PetResource.java`. The code that handles the POST request can be found below.
 <details>
 <summary>
 Code for the POST /pet endpoint
@@ -177,7 +177,7 @@ Code for the POST /pet endpoint
     return Response.ok().entity(updatedPet).build();
   }
 ```
-</details></br>
+</details>
 
 
 From this code we see that the input is JSON or XML (from the `@Consumes`) and the request body is converted to a `Pet` object. We can find the code that describes a `Pet` class in `WuppieFuzz-Workshop/swagger-petstore-swagger-petstore-v2-1.0.6/src/main/java/io/swagger/sample/model/Pet.java`, which can be seen below.
@@ -256,7 +256,7 @@ public class Pet {
 }
 ```
 
-</details></br>
+</details>
 
 As can be seen, the `Pet` class will parse the body of the request according to the XmlElements as shown in the class, and will require conformance to the 
 indicated data structures. From this we can see that the "tags" label requires a list of `Tag` objects which are defined here `WuppieFuzz-Workshop/swagger-petstore-swagger-petstore-v2-1.0.6/src/main/java/io/swagger/sample/model/Tag.java` and shown below.
@@ -293,7 +293,7 @@ public class Tag {
 }
 ```
 
-</details></br>
+</details>
 
 This reveals that the "Tag" class has data types defined as a follows: 
 ```json
