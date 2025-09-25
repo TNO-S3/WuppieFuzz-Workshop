@@ -1,6 +1,7 @@
 #!/bin/bash
 
-CONTAINER_NAME="petstore_fuzz"
+IMAGE_BASE_NAME="petstore"
+CONTAINER_BASE_NAME="petstore_fuzz"
 
 usage() {
     echo
@@ -19,9 +20,13 @@ if [ $# -ne 1 ]; then
 fi
 if [ "$1" == "true" ]; then
     APPLY_PATCH="True"
+    CONTAINER_NAME="${CONTAINER_BASE_NAME}_patched"
+    IMAGE_NAME="${IMAGE_BASE_NAME}_patched"
 elif [ "$1" == "false" ]; then
 # patch -p1 < ../petstore.patch
     APPLY_PATCH=""
+    CONTAINER_NAME="${CONTAINER_BASE_NAME}_raw"
+    IMAGE_NAME="${IMAGE_BASE_NAME}_raw"
 else
     echo "Error: invalid option selected"
     usage
@@ -55,25 +60,30 @@ fi
 
 cd ..
 
-# Build the Petstore Docker image
-docker build -t petstore .
+# Build the Petstore Docker image if not exists
+if [ -z "$(docker images -q $IMAGE_NAME 2> /dev/null)" ]; then
+    echo "[*] Building Docker image \"$IMAGE_NAME\"..."
+    docker build -t $IMAGE_NAME .
+else
+    echo "[*] Not building Docker image, already found: \"$IMAGE_NAME\""
+fi
 
 # Kill the existing container if it exists
-if [[ ! -z $(docker ps | grep $CONTAINER_NAME) ]]; then
-    echo "[*] Killing existing container \"$CONTAINER_NAME\"..."
-    docker kill $CONTAINER_NAME > /dev/null
+containers=$(docker ps -q --filter="name=$CONTAINER_BASE_NAME")
+if [[ ! -z $containers ]]; then
+    echo "[*] Stopping existing containers \"$containers\"..."
+    docker stop $containers > /dev/null
 fi
 
-# Remove the existing container if it exists
-if [[ ! -z $(docker ps -a | grep $CONTAINER_NAME) ]]; then
-    echo "[*] Removing existing container \"$CONTAINER_NAME\"..."
-    docker rm $CONTAINER_NAME > /dev/null
+# Start a container if exists, otherwise create a new one
+container=$(docker ps -a -q --filter="name=$CONTAINER_NAME")
+if [[ ! -z $container ]]; then
+    echo "[*] Starting the existing container \"$container\"..."
+    docker start $container > /dev/null
+else
+    echo "[*] Creating a new Docker container with name \"$CONTAINER_NAME\"..."
+    docker run -itd -p 8080:8080 --name $CONTAINER_NAME $IMAGE_NAME > /dev/null
 fi
-
-
-# Create a docker container with name "$CONTAINER_NAME"
-echo "[*] Starting a new Docker container with name \"$CONTAINER_NAME\"..."
-docker run -itd -p 8080:8080 --name $CONTAINER_NAME petstore > /dev/null
 
 
 # Loop until the container responds
