@@ -19,7 +19,7 @@ Make sure the directory the fuzzer is installed into is part of your `PATH`.
 
 Install the Wuppiefuzz dashboard. [The repository is here](https://github.com/TNO-S3/WuppieFuzz-dashboard), but here too you can use our installer script for the latest version:
 ```sh
-curl --proto '=https' --tlsv1.2 -LsSf https://github.com/TNO-S3/WuppieFuzz-dashboard/releases/download/v0.2.0/wuppiefuzz-dashboard-installer.sh | sh
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/TNO-S3/WuppieFuzz-dashboard/releases/download/v0.3.0/wuppiefuzz-dashboard-installer.sh | sh
 ```
 
 ### Setting up the target
