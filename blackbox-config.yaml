@@ -1,5 +1,5 @@
 # the URL of the target
-target: http://localhost:8080
+target: http://localhost:8080/api
 
 # format used for coverage
 #coverage_format: jacoco
